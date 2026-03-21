@@ -1,6 +1,5 @@
 const { spawnSync } = require('node:child_process')
-const { appendFileSync, existsSync } = require('node:fs')
-const path = require('node:path')
+const { appendFileSync } = require('node:fs')
 
 function fail(message) {
     console.error(`::error::${message}`)
@@ -345,14 +344,6 @@ function buildDevHubLoginArgs(devhubAlias, setDefaultDevHub) {
 }
 
 function resolveSfpCommand() {
-    const workspaceRoot = process.env.GITHUB_WORKSPACE?.trim()
-    if (workspaceRoot) {
-        const workspaceCommand = path.join(workspaceRoot, 'forks', 'sfp', 'bin', 'run')
-        if (existsSync(workspaceCommand)) {
-            return workspaceCommand
-        }
-    }
-
     return 'sfp'
 }
 
