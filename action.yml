@@ -1,4 +1,4 @@
-name: Reserve Scratch
+name: sfp-scratch-reserve
 description: Fetches and reserves a pooled scratch org via sfp, then releases it in the post step.
 
 inputs:
