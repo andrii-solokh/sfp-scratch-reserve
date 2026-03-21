@@ -262,21 +262,25 @@ async function reservePooledScratchOrg(options: ActionOptions): Promise<string> 
   for (let attempt = 1; attempt <= options.fetchAttempts; attempt += 1) {
     console.log(`Pool fetch attempt ${attempt}/${options.fetchAttempts}...`);
 
-    const output = runCommand(
+    const result = runCommandAllowFailure(
       sfpCommand,
       buildPoolFetchArgs(options.poolTag, options.devhubAlias),
       true,
     );
 
-    if (isSfpPoolCommandUnavailable(output)) {
+    if (isSfpPoolCommandUnavailable(result.output)) {
       fail(`sfp pool command is unavailable for pool "${options.poolTag}".`);
     }
 
-    const scratchUsername = extractScratchUsername(output);
-    if (scratchUsername) {
-      console.log(`Fetched pooled scratch org: ${scratchUsername}`);
-      updateAllocationStatus(options.devhubAlias, scratchUsername, "reserve");
-      return scratchUsername;
+    if (result.status === 0) {
+      const scratchUsername = extractScratchUsername(result.output);
+      if (scratchUsername) {
+        console.log(`Fetched pooled scratch org: ${scratchUsername}`);
+        updateAllocationStatus(options.devhubAlias, scratchUsername, "reserve");
+        return scratchUsername;
+      }
+    } else {
+      console.log(result.output.trim());
     }
 
     if (attempt < options.fetchAttempts) {
