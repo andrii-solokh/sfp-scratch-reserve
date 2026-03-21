@@ -16,7 +16,6 @@ exports.buildDevHubLoginArgs = buildDevHubLoginArgs;
 exports.resolveSfpCommand = resolveSfpCommand;
 const node_child_process_1 = require("node:child_process");
 const node_fs_1 = require("node:fs");
-const path = require("node:path");
 function fail(message) {
     console.error(`::error::${message}`);
     throw new Error(message);
@@ -309,12 +308,5 @@ function buildDevHubLoginArgs(devhubAlias, setDefaultDevHub) {
     return args;
 }
 function resolveSfpCommand() {
-    const workspaceRoot = process.env.GITHUB_WORKSPACE?.trim();
-    if (workspaceRoot) {
-        const workspaceCommand = path.join(workspaceRoot, "forks", "sfp", "bin", "run");
-        if ((0, node_fs_1.existsSync)(workspaceCommand)) {
-            return workspaceCommand;
-        }
-    }
     return "sfp";
 }
