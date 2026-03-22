@@ -208,6 +208,29 @@ function runCommand(command: string, args: string[], captureOutput = false, stdi
   return result.output;
 }
 
+function resolveDevHubUsername(devhubAlias: string): string {
+  const args = ["org", "display", "--target-org", devhubAlias || "", "--json"];
+  if (!devhubAlias) {
+    args.splice(2, 2, "--target-dev-hub");
+  }
+  const result = runCommandAllowFailure("sf", args, true);
+  if (result.status === 0) {
+    const parsed = parseJsonObjectFromOutput(result.output);
+    if (parsed) {
+      const username =
+        typeof parsed.username === "string"
+          ? parsed.username
+          : isRecord(parsed.result) && typeof (parsed.result as JsonObject).username === "string"
+            ? ((parsed.result as JsonObject).username as string)
+            : null;
+      if (username) {
+        return username.trim();
+      }
+    }
+  }
+  return devhubAlias;
+}
+
 function authenticateDevHubIfNeeded(options: ActionOptions): void {
   const sfdxAuthUrl = getInput("devhub-sfdx-auth-url", "");
   if (!sfdxAuthUrl) {
@@ -348,6 +371,11 @@ function configureScratchAliasAndDefaultTargetOrg(
 export async function runMain(): Promise<void> {
   const options = readActionOptions();
   authenticateDevHubIfNeeded(options);
+  const resolvedDevHub = resolveDevHubUsername(options.devhubAlias);
+  if (resolvedDevHub !== options.devhubAlias) {
+    console.log(`Resolved Dev Hub alias "${options.devhubAlias}" to username "${resolvedDevHub}"`);
+    options.devhubAlias = resolvedDevHub;
+  }
   const scratchUsername = await reservePooledScratchOrg(options);
   const targetOrgValue = configureScratchAliasAndDefaultTargetOrg(options, scratchUsername);
   setOutput("scratch-username", scratchUsername);
