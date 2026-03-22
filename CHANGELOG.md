@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.5](https://github.com/andrii-solokh/sfp-scratch-reserve/compare/v0.1.4...v0.1.5) (2026-03-22)
+
+
+### Bug Fixes
+
+* log executed commands for debugging ([24baa32](https://github.com/andrii-solokh/sfp-scratch-reserve/commit/24baa32723eb2022ca81b5208cf84d430877558f))
+* resolve devhub alias to username before passing to sfp ([bd397ef](https://github.com/andrii-solokh/sfp-scratch-reserve/commit/bd397ef7ccdaab2a1148b19d9ef4d6d449aaf48c))
+
 ## [0.1.4](https://github.com/andrii-solokh/sfp-scratch-reserve/compare/v0.1.3...v0.1.4) (2026-03-22)
 
 
