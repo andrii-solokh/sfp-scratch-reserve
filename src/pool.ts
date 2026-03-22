@@ -280,7 +280,12 @@ async function reservePooledScratchOrg(options: ActionOptions): Promise<string> 
 
     const result = runCommandAllowFailure(
       sfpCommand,
-      buildPoolFetchArgs(options.poolTag, options.devhubAlias),
+      buildPoolFetchArgs(
+        options.poolTag,
+        options.devhubAlias,
+        options.scratchAlias,
+        options.setDefaultTargetOrg,
+      ),
       true,
     );
 
@@ -350,22 +355,9 @@ function readActionOptions(): ActionOptions {
   };
 }
 
-function configureScratchAliasAndDefaultTargetOrg(
-  options: ActionOptions,
-  scratchUsername: string,
-): string {
+function resolveScratchAliasOutput(options: ActionOptions, scratchUsername: string): string {
   const normalizedAlias = options.scratchAlias.trim();
-  const targetOrgValue = normalizedAlias.length > 0 ? normalizedAlias : scratchUsername;
-
-  if (normalizedAlias.length > 0) {
-    runCommand("sf", ["alias", "set", `${normalizedAlias}=${scratchUsername}`]);
-  }
-
-  if (options.setDefaultTargetOrg) {
-    runCommand("sf", ["config", "set", `target-org=${targetOrgValue}`]);
-  }
-
-  return targetOrgValue;
+  return normalizedAlias.length > 0 ? normalizedAlias : scratchUsername;
 }
 
 export async function runMain(): Promise<void> {
@@ -377,7 +369,7 @@ export async function runMain(): Promise<void> {
     options.devhubAlias = resolvedDevHub;
   }
   const scratchUsername = await reservePooledScratchOrg(options);
-  const targetOrgValue = configureScratchAliasAndDefaultTargetOrg(options, scratchUsername);
+  const targetOrgValue = resolveScratchAliasOutput(options, scratchUsername);
   setOutput("scratch-username", scratchUsername);
   setOutput("scratch-alias", targetOrgValue);
   setState("scratch-username", scratchUsername);
@@ -396,10 +388,21 @@ export function runPost(): void {
   releaseAllocationStatus(devhubAlias, scratchUsername);
 }
 
-export function buildPoolFetchArgs(poolTag: string, devhubAlias: string): string[] {
+export function buildPoolFetchArgs(
+  poolTag: string,
+  devhubAlias: string,
+  scratchAlias: string,
+  setDefaultTargetOrg: boolean,
+): string[] {
   const args = ["pool", "fetch", "-t", poolTag];
   if (devhubAlias) {
     args.push("-v", devhubAlias);
+  }
+  if (scratchAlias) {
+    args.push("-a", scratchAlias);
+  }
+  if (setDefaultTargetOrg) {
+    args.push("-d");
   }
   args.push("--json");
   return args;

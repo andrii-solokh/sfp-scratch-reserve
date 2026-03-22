@@ -220,7 +220,7 @@ async function reservePooledScratchOrg(options) {
     const sfpCommand = resolveSfpCommand();
     for (let attempt = 1; attempt <= options.fetchAttempts; attempt += 1) {
         console.log(`Pool fetch attempt ${attempt}/${options.fetchAttempts}...`);
-        const result = runCommandAllowFailure(sfpCommand, buildPoolFetchArgs(options.poolTag, options.devhubAlias), true);
+        const result = runCommandAllowFailure(sfpCommand, buildPoolFetchArgs(options.poolTag, options.devhubAlias, options.scratchAlias, options.setDefaultTargetOrg), true);
         if (isSfpPoolCommandUnavailable(result.output)) {
             fail(`sfp pool command is unavailable for pool "${options.poolTag}".`);
         }
@@ -267,16 +267,9 @@ function readActionOptions() {
         setDefaultDevHub,
     };
 }
-function configureScratchAliasAndDefaultTargetOrg(options, scratchUsername) {
+function resolveScratchAliasOutput(options, scratchUsername) {
     const normalizedAlias = options.scratchAlias.trim();
-    const targetOrgValue = normalizedAlias.length > 0 ? normalizedAlias : scratchUsername;
-    if (normalizedAlias.length > 0) {
-        runCommand("sf", ["alias", "set", `${normalizedAlias}=${scratchUsername}`]);
-    }
-    if (options.setDefaultTargetOrg) {
-        runCommand("sf", ["config", "set", `target-org=${targetOrgValue}`]);
-    }
-    return targetOrgValue;
+    return normalizedAlias.length > 0 ? normalizedAlias : scratchUsername;
 }
 async function runMain() {
     const options = readActionOptions();
@@ -287,7 +280,7 @@ async function runMain() {
         options.devhubAlias = resolvedDevHub;
     }
     const scratchUsername = await reservePooledScratchOrg(options);
-    const targetOrgValue = configureScratchAliasAndDefaultTargetOrg(options, scratchUsername);
+    const targetOrgValue = resolveScratchAliasOutput(options, scratchUsername);
     setOutput("scratch-username", scratchUsername);
     setOutput("scratch-alias", targetOrgValue);
     setState("scratch-username", scratchUsername);
@@ -303,10 +296,16 @@ function runPost() {
     console.log(`Returning scratch org to pool: ${scratchUsername}`);
     releaseAllocationStatus(devhubAlias, scratchUsername);
 }
-function buildPoolFetchArgs(poolTag, devhubAlias) {
+function buildPoolFetchArgs(poolTag, devhubAlias, scratchAlias, setDefaultTargetOrg) {
     const args = ["pool", "fetch", "-t", poolTag];
     if (devhubAlias) {
         args.push("-v", devhubAlias);
+    }
+    if (scratchAlias) {
+        args.push("-a", scratchAlias);
+    }
+    if (setDefaultTargetOrg) {
+        args.push("-d");
     }
     args.push("--json");
     return args;

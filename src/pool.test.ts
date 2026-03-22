@@ -70,20 +70,29 @@ describe("output parsing", () => {
 });
 
 describe("argument builders", () => {
-  it("builds pool fetch args with devhub", () => {
-    expect(buildPoolFetchArgs("ci-pool", "devhub")).toEqual([
+  it("builds pool fetch args with all options", () => {
+    expect(buildPoolFetchArgs("ci-pool", "devhub", "scratch", true)).toEqual([
       "pool",
       "fetch",
       "-t",
       "ci-pool",
       "-v",
       "devhub",
+      "-a",
+      "scratch",
+      "-d",
       "--json",
     ]);
   });
 
-  it("builds pool fetch args without devhub", () => {
-    expect(buildPoolFetchArgs("ci-pool", "")).toEqual(["pool", "fetch", "-t", "ci-pool", "--json"]);
+  it("builds pool fetch args without optional flags", () => {
+    expect(buildPoolFetchArgs("ci-pool", "", "", false)).toEqual([
+      "pool",
+      "fetch",
+      "-t",
+      "ci-pool",
+      "--json",
+    ]);
   });
 
   it("builds scratch update args without devhub", () => {
