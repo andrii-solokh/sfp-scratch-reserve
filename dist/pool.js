@@ -130,6 +130,7 @@ function setState(name, value) {
     appendEnvironmentFile(statePath, `${name}=${value}`);
 }
 function runCommandAllowFailure(command, args, captureOutput = false, stdin = "") {
+    console.log(`$ ${command} ${args.join(" ")}`);
     const hasStdinInput = stdin.length > 0;
     let stdio;
     if (captureOutput) {

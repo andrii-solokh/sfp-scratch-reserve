@@ -167,6 +167,7 @@ function runCommandAllowFailure(
   captureOutput = false,
   stdin = "",
 ): CommandResult {
+  console.log(`$ ${command} ${args.join(" ")}`);
   const hasStdinInput = stdin.length > 0;
   let stdio: SpawnSyncOptions["stdio"];
 
